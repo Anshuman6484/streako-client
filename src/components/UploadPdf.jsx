@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { supabase } from '@/services/supabaseClient'
 import { toast } from 'sonner'
 import { Input } from './ui/input'
@@ -10,12 +10,14 @@ export default function UploadPdf() {
   const [sign, setSign] = useState(null)
 
   const navigate = useNavigate()
+  const toastIdRef = useRef(null)
 
   const handleFileUpload = async () => {
     if (!file) {
       toast.error('Please select a file')
       return
     }
+    toastIdRef.current = toast.loading('Uploading PDF...')
 
     const {
       data: { user },
@@ -28,9 +30,14 @@ export default function UploadPdf() {
       .upload(filePath, file)
 
     if (error) {
-      toast.error('Upload failed: ' + error.message)
+      toast.error('Upload failed: ' + error.message, { id: toastIdRef.current })
     } else {
-      toast.success('PDF uploaded successfully!')
+      toast.success('PDF uploaded successfully!', {
+        id: toastIdRef.current,
+        onAutoClose: () => {
+          toastIdRef.current = null
+        },
+      })
       console.log('Uploaded path:', data.path)
     }
   }
@@ -40,6 +47,7 @@ export default function UploadPdf() {
       toast.error('Please select a signature')
       return
     }
+    toastIdRef.current = toast.loading('Uploading Signature...')
 
     const {
       data: { user },
@@ -52,9 +60,14 @@ export default function UploadPdf() {
       .upload(filePath, sign)
 
     if (error) {
-      toast.error('Upload failed: ' + error.message)
+      toast.error('Upload failed: ' + error.message, { id: toastIdRef.current })
     } else {
-      toast.success('Signature uploaded successfully!')
+      toast.success('Signature uploaded successfully!', {
+        id: toastIdRef.current,
+        onAutoClose: () => {
+          toastIdRef.current = null
+        },
+      })
       console.log('Uploaded path:', data.path)
     }
   }
